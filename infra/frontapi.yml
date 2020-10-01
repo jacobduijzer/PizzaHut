@@ -1,0 +1,55 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+  namespace: default
+spec:
+  rules:
+  - host: pizzahut.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: front-api
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-api
+  labels:
+    run: front-api
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: front-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-api
+  labels:
+    app: front-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front-api
+  template:
+    metadata:
+      labels:
+        app: front-api
+    spec:
+      containers:
+      - name: front-api
+        image: jacobsspielerei.azurecr.io/frontapi:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: regcred
